@@ -1,8 +1,0 @@
-{
-  "github": {
-    "silent": true
-  },
-  "buildCommand": "cd dashboard && flutter pub get && flutter build web --release",
-  "outputDirectory": "dashboard/build/web",
-  "cleanUrls": true
-}
