@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "FanSync AI: Global Creator Manager",
+  "version": "1.0.0",
+  "description": "AI-powered chat response and multi-platform posting automation for OnlyFans creators.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://onlyfans.com/*",
+    "https://*.onlyfans.com/*",
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://*.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://onlyfans.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
