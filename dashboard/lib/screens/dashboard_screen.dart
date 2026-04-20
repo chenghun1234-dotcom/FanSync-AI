@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
+
+  Future<void> _signOut(BuildContext context) async {
+    await Supabase.instance.client.auth.signOut();
+    if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,25 +65,27 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 48),
-          _sidebarItem(Icons.dashboard_rounded, 'Dashboard', isActive: true, onTap: () => Navigator.pushNamed(context, '/')),
-          _sidebarItem(Icons.camera_alt_rounded, 'Content Studio', onTap: () => Navigator.pushNamed(context, '/content-studio')),
-          _sidebarItem(Icons.psychology_rounded, 'Style Learning', onTap: () => Navigator.pushNamed(context, '/style-learning')),
-          _sidebarItem(Icons.analytics_outlined, 'Style Analysis', onTap: () => Navigator.pushNamed(context, '/style-analysis')),
-          _sidebarItem(Icons.bar_chart_rounded, 'Revenue Reports', onTap: () => Navigator.pushNamed(context, '/revenue')),
-          _sidebarItem(Icons.groups_rounded, 'Team Management', onTap: () => Navigator.pushNamed(context, '/team')),
-          _sidebarItem(Icons.business_center_rounded, 'Agency Console', onTap: () => Navigator.pushNamed(context, '/agency')),
-          _sidebarItem(Icons.payments_rounded, 'Billing', onTap: () => Navigator.pushNamed(context, '/billing')),
-          _sidebarItem(Icons.people_alt_rounded, 'Models', onTap: () => Navigator.pushNamed(context, '/team')),
-          _sidebarItem(Icons.analytics_rounded, 'Earnings', onTap: () => Navigator.pushNamed(context, '/revenue')),
-          _sidebarItem(Icons.settings_rounded, 'Settings', onTap: () => Navigator.pushNamed(context, '/settings')),
+          _sidebarItem(context, Icons.dashboard_rounded, 'Dashboard', isActive: true, onTap: () => Navigator.pushNamed(context, '/dashboard')),
+          _sidebarItem(context, Icons.camera_alt_rounded, 'Content Studio', onTap: () => Navigator.pushNamed(context, '/content-studio')),
+          _sidebarItem(context, Icons.psychology_rounded, 'Style Learning', onTap: () => Navigator.pushNamed(context, '/style-learning')),
+          _sidebarItem(context, Icons.analytics_outlined, 'Style Analysis', onTap: () => Navigator.pushNamed(context, '/style-analysis')),
+          _sidebarItem(context, Icons.bar_chart_rounded, 'Revenue Reports', onTap: () => Navigator.pushNamed(context, '/revenue')),
+          _sidebarItem(context, Icons.groups_rounded, 'Team Management', onTap: () => Navigator.pushNamed(context, '/team')),
+          _sidebarItem(context, Icons.business_center_rounded, 'Agency Console', onTap: () => Navigator.pushNamed(context, '/agency')),
+          _sidebarItem(context, Icons.payments_rounded, 'Billing', onTap: () => Navigator.pushNamed(context, '/billing')),
+          _sidebarItem(context, Icons.people_alt_rounded, 'Models', onTap: () => Navigator.pushNamed(context, '/team')),
+          _sidebarItem(context, Icons.analytics_rounded, 'Earnings', onTap: () => Navigator.pushNamed(context, '/revenue')),
+          _sidebarItem(context, Icons.settings_rounded, 'Settings', onTap: () => Navigator.pushNamed(context, '/settings')),
           const Spacer(),
+          _sidebarItem(context, Icons.logout_rounded, 'Sign Out', onTap: () => _signOut(context)),
+          const SizedBox(height: 16),
           _buildCreditCard(),
         ],
       ),
     );
   }
 
-  Widget _sidebarItem(IconData icon, String label, {bool isActive = false, VoidCallback? onTap}) {
+  Widget _sidebarItem(BuildContext context, IconData icon, String label, {bool isActive = false, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -91,11 +99,13 @@ class DashboardScreen extends StatelessWidget {
           children: [
             Icon(icon, color: isActive ? const Color(0xFF008FDB) : Colors.grey[400]),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                color: isActive ? const Color(0xFF008FDB) : Colors.grey[600],
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                  color: isActive ? const Color(0xFF008FDB) : Colors.grey[600],
+                ),
               ),
             ),
           ],
@@ -131,6 +141,9 @@ class DashboardScreen extends StatelessWidget {
   }
 
   void _showAddModelDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    String persona = 'Gyaru';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -138,23 +151,37 @@ class DashboardScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const TextField(decoration: InputDecoration(labelText: 'Model Name / Handle')),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Model Name / Handle'),
+            ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
+              value: persona,
               decoration: const InputDecoration(labelText: 'Initial Persona'),
               items: ['Gyaru', 'Tsundere', 'Mature'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-              onChanged: (_) {},
+              onChanged: (val) => persona = val!,
             ),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Model added successfully! Link it in the extension.')),
-              );
+            onPressed: () async {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                await Supabase.instance.client.from('models').insert({
+                  'agency_id': Supabase.instance.client.auth.currentUser!.id,
+                  'name': name,
+                  'persona_settings': {'tone': persona}
+                });
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Model added successfully!')),
+                  );
+                }
+              }
             },
             child: const Text('Create'),
           ),
@@ -164,14 +191,26 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildStatsGrid() {
-    return Row(
-      children: [
-        _statCard('Total Earnings', r'$12,450.00', Icons.payments_rounded, Colors.green),
-        const SizedBox(width: 24),
-        _statCard('AI Conversations', '4,231', Icons.chat_bubble_rounded, Colors.blue),
-        const SizedBox(width: 24),
-        _statCard('Conversion Rate', '8.4%', Icons.trending_up_rounded, Colors.orange),
-      ],
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('revenue_logs').stream(primaryKey: ['id']),
+      builder: (context, snapshot) {
+        double total = 0;
+        if (snapshot.hasData) {
+          for (var row in snapshot.data!) {
+            total += (row['amount'] as num).toDouble();
+          }
+        }
+
+        return Row(
+          children: [
+            _statCard('Total Earnings', r'$' + total.toStringAsFixed(2), Icons.payments_rounded, Colors.green),
+            const SizedBox(width: 24),
+            _statCard('AI Conversations', 'Live', Icons.chat_bubble_rounded, Colors.blue),
+            const SizedBox(width: 24),
+            _statCard('Active Models', snapshot.hasData ? snapshot.data!.length.toString() : '...', Icons.trending_up_rounded, Colors.orange),
+          ],
+        );
+      }
     );
   }
 
@@ -207,19 +246,36 @@ class DashboardScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(2),
-          1: FlexColumnWidth(1),
-          2: FlexColumnWidth(1),
-          3: FlexColumnWidth(1),
-        },
-        children: [
-          _tableHeader(),
-          _tableRow('Model_Sana (Japan)', 'Active', '1,420 CR', '12m ago'),
-          _tableRow('Model_Yui (Global)', 'Inactive', '0 CR', '2d ago'),
-          _tableRow('Model_Mika (Japan)', 'Grace Period', '15 CR', '1h ago'),
-        ],
+      child: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client.from('models').stream(primaryKey: ['id']),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(40),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          
+          final models = snapshot.data ?? [];
+          
+          return Table(
+            columnWidths: const {
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(1),
+              2: FlexColumnWidth(1),
+              3: FlexColumnWidth(1),
+            },
+            children: [
+              _tableHeader(),
+              ...models.map((m) => _tableRow(
+                m['name'] ?? 'Unknown',
+                'Active',
+                'Synced',
+                'Just now',
+              )),
+            ],
+          );
+        }
       ),
     );
   }
@@ -238,7 +294,13 @@ class DashboardScreen extends StatelessWidget {
     return TableRow(
       children: [
         Padding(padding: const EdgeInsets.all(20), child: Text(name, style: GoogleFonts.inter(fontWeight: FontWeight.w600))),
-        Padding(padding: const EdgeInsets.all(20), child: Text(status)),
+        Padding(padding: const EdgeInsets.all(20), child: Row(
+          children: [
+            Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+            const SizedBox(width: 8),
+            Text(status),
+          ],
+        )),
         Padding(padding: const EdgeInsets.all(20), child: Text(credits)),
         Padding(padding: const EdgeInsets.all(20), child: Text(time)),
       ],
@@ -257,7 +319,7 @@ class DashboardScreen extends StatelessWidget {
         children: [
           const Text('Agency Wallet', style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 4),
-          const Text('45,200 Credits', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text('Unlimited Credits', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,

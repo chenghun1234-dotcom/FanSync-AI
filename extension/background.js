@@ -248,10 +248,38 @@ async function getOptimalPersona(messages, variants) {
 }
 
 async function handleRevenueSync(revenueData) {
-  // Logic to push scraped revenue to Supabase revenue_logs
-  // In Beta, we'll store this locally if the agency token is present
-  console.log("FanSync AI: Syncing revenue data...", revenueData);
-  return { status: "captured" };
+  const SUPABASE_URL = 'https://abclfexwwxulczcuubia.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiY2xmZXh3d3h1bGN6Y3V1YmlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NjQ5MTgsImV4cCI6MjA5MjI0MDkxOH0.OTpZICqQd7DCNEV-PWCdur2aPq7lY-ybDkV_tmbZ0XY';
+  
+  console.log("FanSync AI: Syncing revenue data to Supabase...", revenueData);
+
+  const syncPromises = revenueData.map(async (item) => {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/revenue_logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          amount: parseFloat(item.amount),
+          source: item.source,
+          // Note: In a full implementation, we'd dynamicallly determine the model_id 
+          // From the OnlyFans profile currently active.
+          model_id: '8681284d-29ce-4767-857c-2b2361ec03c0' // Using seeds as fallback or first found
+        })
+      });
+      return response.ok;
+    } catch (err) {
+      console.error("Sync error:", err);
+      return false;
+    }
+  });
+
+  const results = await Promise.all(syncPromises);
+  return { success: results.every(r => r), synced: results.filter(r => r).length };
 }
 
 function getTierPersona(spending) {

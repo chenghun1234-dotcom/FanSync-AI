@@ -1,55 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RevenueReportScreen extends StatelessWidget {
   const RevenueReportScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Text('Agency Revenue Analytics', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildRevenueSummary(),
-            const SizedBox(height: 32),
-            Text('Real-time Earnings Trend', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            _buildRevenueChart(),
-            const SizedBox(height: 32),
-            _buildTrafficFunnel(),
-            const SizedBox(height: 32),
-            Row(
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('revenue_logs').stream(primaryKey: ['id']),
+      builder: (context, snapshot) {
+        double totalRevenue = 0;
+        if (snapshot.hasData) {
+          for (var row in snapshot.data!) {
+            totalRevenue += (row['amount'] as num).toDouble();
+          }
+        }
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            title: Text('Agency Revenue Analytics', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 2, child: _buildModelRankingList()),
-                const SizedBox(width: 32),
-                Expanded(flex: 1, child: _buildFanTierDistribution()),
+                _buildRevenueSummary(totalRevenue),
+                const SizedBox(height: 32),
+                Text('Real-time Earnings Trend', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                _buildRevenueChart(snapshot.data ?? []),
+                const SizedBox(height: 32),
+                _buildTrafficFunnel(),
+                const SizedBox(height: 32),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: _buildModelRankingList(snapshot.data ?? [])),
+                    const SizedBox(width: 32),
+                    Expanded(flex: 1, child: _buildFanTierDistribution()),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildRevenueSummary() {
+  Widget _buildRevenueSummary(double total) {
     return Row(
       children: [
-        _kpiCard("Today's Total", "\$1,240.50", "+12.5%", Colors.green),
+        _kpiCard("Today's Total", r"$" + total.toStringAsFixed(2), "Live", Colors.green),
         const SizedBox(width: 16),
-        _kpiCard("AI Sales Ratio", "68.2%", "+5.1%", Colors.blue),
+        _kpiCard("AI Sales Ratio", "84.2%", "+5.1%", Colors.blue),
         const SizedBox(width: 16),
-        _kpiCard("Top Persona", "Gyaru", "HOT", Colors.orange),
+        _kpiCard("Top Persona", "Tsundere", "HOT", Colors.orange),
       ],
     );
   }
@@ -88,7 +101,7 @@ class RevenueReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRevenueChart() {
+  Widget _buildRevenueChart(List<Map<String, dynamic>> data) {
     return Container(
       height: 350,
       padding: const EdgeInsets.all(32),
@@ -107,15 +120,9 @@ class RevenueReportScreen extends StatelessWidget {
           borderData: FlBorderData(show: false),
           lineBarsData: [
             LineChartBarData(
-              spots: const [
-                FlSpot(0, 300),
-                FlSpot(2, 450),
-                FlSpot(4, 380),
-                FlSpot(6, 600),
-                FlSpot(8, 550),
-                FlSpot(10, 800),
-                FlSpot(12, 1240),
-              ],
+              spots: data.isEmpty
+                ? [const FlSpot(0, 0)]
+                : List.generate(data.length, (i) => FlSpot(i.toDouble(), (data[i]['amount'] as num).toDouble())),
               isCurved: true,
               color: const Color(0xFF3B82F6),
               barWidth: 5,
@@ -132,7 +139,17 @@ class RevenueReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildModelRankingList() {
+  Widget _buildModelRankingList(List<Map<String, dynamic>> logs) {
+    // Group logs by model_id to show ranking
+    final Map<String, double> modelTotals = {};
+    for (var log in logs) {
+      final mid = log['model_id']?.toString() ?? 'Unknown';
+      modelTotals[mid] = (modelTotals[mid] ?? 0) + (log['amount'] as num).toDouble();
+    }
+
+    final sortedModels = modelTotals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -147,13 +164,10 @@ class RevenueReportScreen extends StatelessWidget {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 5,
+            itemCount: sortedModels.length.clamp(0, 5),
             separatorBuilder: (context, index) => const Divider(height: 32),
             itemBuilder: (context, index) {
-              final names = ['Yui', 'Sana', 'Moka', 'Haruna', 'Kana'];
-              final personas = ['Gyaru', 'Tsundere', 'Mature', 'Gyaru', 'Tsundere'];
-              final amounts = [r'$542.20', r'$310.50', r'$210.00', r'$120.40', r'$57.40'];
-              
+              final entry = sortedModels[index];
               return Row(
                 children: [
                   CircleAvatar(
@@ -161,15 +175,9 @@ class RevenueReportScreen extends StatelessWidget {
                     child: Text('${index + 1}', style: const TextStyle(color: Colors.blue)),
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(names[index], style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-                      Text('Active Persona: ${personas[index]}', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey)),
-                    ],
-                  ),
+                  Text('Model (${entry.key.substring(0, 8)})', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
                   const Spacer(),
-                  Text(amounts[index], style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
+                  Text(r'$' + entry.value.toStringAsFixed(2), style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
                 ],
               );
             },
