@@ -20,33 +20,40 @@ class BillingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRevenueSummary(),
-            const SizedBox(height: 48),
-            Text('Payout & Refill', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 2, child: _buildPaymentMethods()),
-                const SizedBox(width: 32),
-                Expanded(flex: 3, child: _buildTransactionHistory()),
-              ],
-            ),
+        _buildRevenueSummary(),
+        const SizedBox(height: 48),
+        Text('Select Recharge Package', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 24),
+        _buildRechargePackages(context),
+        const SizedBox(height: 48),
+        Text('Payout & Refill', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 2, child: _buildPaymentMethods()),
+            const SizedBox(width: 32),
+            Expanded(flex: 3, child: _buildTransactionHistory()),
           ],
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  ),
+);
+}
 
-  Widget _buildRevenueSummary() {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF1E293B), Color(0xFF334155)]),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
-      ),
-      child: Row(
+Widget _buildRevenueSummary() {
+return Container(
+  padding: const EdgeInsets.all(40),
+  decoration: BoxDecoration(
+    gradient: const LinearGradient(colors: [Color(0xFF1E293B), Color(0xFF334155)]),
+    borderRadius: BorderRadius.circular(24),
+    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
@@ -55,49 +62,107 @@ class BillingScreen extends StatelessWidget {
               Text('Available Balance', style: GoogleFonts.inter(color: Colors.white60, fontSize: 16)),
               const SizedBox(height: 8),
               Text('\$4,520.00', style: GoogleFonts.outfit(color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  _miniStat('This Month', '+\$1,240.50'),
-                  const SizedBox(width: 32),
-                  _miniStat('Pending Payouts', '\$240.00'),
-                ],
-              ),
             ],
           ),
-          Builder(
-            builder: (context) => PayPalPaymentButton(
-              amount: 50.00,
-              onSuccess: (paymentId) {
-                _showSuccessDialog(context, paymentId);
-              },
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: [
+                const Icon(Icons.bolt, color: Colors.yellow, size: 20),
+                const SizedBox(width: 8),
+                Text('Unlimited Potential', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+              ],
             ),
           ),
         ],
       ),
+      const SizedBox(height: 32),
+      Row(
+        children: [
+          _miniStat('This Month', '+\$1,240.50'),
+          const SizedBox(width: 48),
+          _miniStat('Pending Payouts', '\$240.00'),
+          const SizedBox(width: 48),
+          _miniStat('Active AI Models', '12 Creators'),
+        ],
+      ),
+    ],
+  ),
+);
+}
+
+Widget _buildRechargePackages(BuildContext context) {
+return Row(
+  children: [
+    _tierCard(context, 'Starter', '100', 10.00, Colors.blueGrey, false),
+    const SizedBox(width: 20),
+    _tierCard(context, 'Growth', '600', 50.00, const Color(0xFF008FDB), true),
+    const SizedBox(width: 20),
+    _tierCard(context, 'Pro', '1,300', 100.00, const Color(0xFF8A2BE2), false),
+    const SizedBox(width: 20),
+    _tierCard(context, 'Agency', '7,000', 500.00, const Color(0xFFFFD700), false, isBestValue: true),
+  ],
+);
+}
+
+Widget _tierCard(BuildContext context, String name, String credits, double price, Color color, bool isPopular, {bool isBestValue = false}) {
+return Expanded(
+  child: Container(
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: isPopular ? Border.all(color: color, width: 2) : Border.all(color: Colors.transparent),
+      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+    ),
+    child: Column(
+      children: [
+        if (isPopular || isBestValue)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
+            child: Text(isPopular ? 'POPULAR' : 'BEST VALUE', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+          ),
+        const SizedBox(height: 16),
+        Text(name, style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('$credits Credits', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(height: 24),
+        const Divider(),
+        const SizedBox(height: 24),
+        Text(r'$' + price.toStringAsFixed(2), style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 24),
+        PayPalPaymentButton(
+          amount: price,
+          onSuccess: (paymentId) => _showSuccessDialog(context, paymentId, price),
+        ),
+      ],
+    ),
+  ),
     );
   }
 
-  void _showSuccessDialog(BuildContext context, String paymentId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Icon(Icons.check_circle, color: Colors.green, size: 64),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Payment Successful!', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text(r'Your agency wallet has been topped up with $50.00.', textAlign: TextAlign.center, style: GoogleFonts.inter()),
-            const SizedBox(height: 16),
-            Text('Ref: $paymentId', style: GoogleFonts.firaCode(fontSize: 11, color: Colors.grey)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Great!')),
-        ],
-      ),
-    );
+  void _showSuccessDialog(BuildContext context, String paymentId, double amount) {
+showDialog(
+  context: context,
+  builder: (context) => AlertDialog(
+    title: const Icon(Icons.check_circle, color: Colors.green, size: 64),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Payment Successful!', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Text(r'Your agency wallet has been topped up with $' + amount.toStringAsFixed(2) + '.', textAlign: TextAlign.center, style: GoogleFonts.inter()),
+        const SizedBox(height: 16),
+        Text('Ref: $paymentId', style: GoogleFonts.firaCode(fontSize: 11, color: Colors.grey)),
+      ],
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Great!')),
+    ],
+  ),
+);
   }
 
   Widget _miniStat(String label, String value) {
