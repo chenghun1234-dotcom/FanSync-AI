@@ -21,8 +21,8 @@ class PayPalPaymentButton extends StatelessWidget {
           MaterialPageRoute(
             builder: (BuildContext context) => PaypalCheckoutView(
               sandboxMode: true, // 테스트 시 true, 실서비스 시 false
-              clientId: "YOUR_PAYPAL_CLIENT_ID",
-              secretKey: "YOUR_PAYPAL_SECRET_KEY",
+              clientId: "AaYKv62WtnXRON10MfUmybSFKWpr-86UkvMx-ZztM7pn92CH8x7Ruz6Nt93xLNLg60gL7nGPyQbUlufX",
+              secretKey: "YOUR_PAYPAL_SECRET_KEY", // 실제 서비스 시 Secret Key도 필요합니다.
               transactions: [
                 {
                   "amount": {
