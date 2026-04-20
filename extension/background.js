@@ -36,7 +36,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   }
+
+  if (request.type === "TEST_CONNECTION") {
+    handleTestConnection()
+      .then(() => sendResponse({ success: true }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
 });
+
+async function handleTestConnection() {
+  const settings = await chrome.storage.local.get(['gemini_api_key']);
+  if (!settings.gemini_api_key) throw new Error("API Key missing in storage.");
+  
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${settings.gemini_api_key}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error ? errorData.error.message : response.statusText);
+  }
+}
 
 async function handleResponseGeneration(messages, spending) {
   // 1. Get settings from storage

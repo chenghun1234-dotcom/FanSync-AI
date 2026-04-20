@@ -65,12 +65,36 @@ class BillingScreen extends StatelessWidget {
               ),
             ],
           ),
-          PayPalPaymentButton(
-            amount: 50.00,
-            onSuccess: (paymentId) {
-              debugPrint('Payment Successful: $paymentId');
-            },
+          Builder(
+            builder: (context) => PayPalPaymentButton(
+              amount: 50.00,
+              onSuccess: (paymentId) {
+                _showSuccessDialog(context, paymentId);
+              },
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String paymentId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Icon(Icons.check_circle, color: Colors.green, size: 64),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Payment Successful!', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text('Your agency wallet has been topped up with $50.00.', textAlign: TextAlign.center, style: GoogleFonts.inter()),
+            const SizedBox(height: 16),
+            Text('Ref: $paymentId', style: GoogleFonts.firaCode(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Great!')),
         ],
       ),
     );

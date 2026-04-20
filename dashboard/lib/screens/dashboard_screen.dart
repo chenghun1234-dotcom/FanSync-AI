@@ -17,7 +17,7 @@ class DashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(),
+                  _buildHeader(context),
                   const SizedBox(height: 40),
                   _buildStatsGrid(),
                   const SizedBox(height: 48),
@@ -67,8 +67,8 @@ class DashboardScreen extends StatelessWidget {
           _sidebarItem(Icons.groups_rounded, 'Team Management', onTap: () => Navigator.pushNamed(context, '/team')),
           _sidebarItem(Icons.business_center_rounded, 'Agency Console', onTap: () => Navigator.pushNamed(context, '/agency')),
           _sidebarItem(Icons.payments_rounded, 'Billing', onTap: () => Navigator.pushNamed(context, '/billing')),
-          _sidebarItem(Icons.people_alt_rounded, 'Models'),
-          _sidebarItem(Icons.analytics_rounded, 'Earnings'),
+          _sidebarItem(Icons.people_alt_rounded, 'Models', onTap: () => Navigator.pushNamed(context, '/team')),
+          _sidebarItem(Icons.analytics_rounded, 'Earnings', onTap: () => Navigator.pushNamed(context, '/revenue')),
           _sidebarItem(Icons.settings_rounded, 'Settings', onTap: () => Navigator.pushNamed(context, '/settings')),
           const Spacer(),
           _buildCreditCard(),
@@ -104,7 +104,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -116,7 +116,7 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () => _showAddModelDialog(context),
           icon: const Icon(Icons.add),
           label: const Text('Add New Model'),
           style: ElevatedButton.styleFrom(
@@ -127,6 +127,39 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAddModelDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add New Creator Model', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const TextField(decoration: InputDecoration(labelText: 'Model Name / Handle')),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(labelText: 'Initial Persona'),
+              items: ['Gyaru', 'Tsundere', 'Mature'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              onChanged: (_) {},
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Model added successfully! Link it in the extension.')),
+              );
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
     );
   }
 

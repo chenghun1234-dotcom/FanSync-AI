@@ -165,8 +165,13 @@ input:focus, select:focus {
   text-transform: uppercase;
 }
 
+.button-row {
+  display: flex;
+  gap: 12px;
+}
+
 .primary-btn {
-  width: 100%;
+  flex: 2;
   background: var(--primary);
   color: white;
   border: none;
@@ -178,6 +183,25 @@ input:focus, select:focus {
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.2s;
   box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.secondary-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-dim);
 }
 
 .primary-btn:active {
