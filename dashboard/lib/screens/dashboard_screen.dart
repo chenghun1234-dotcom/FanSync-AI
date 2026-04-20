@@ -133,7 +133,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildStatsGrid() {
     return Row(
       children: [
-        _statCard('Total Earnings', '$12,450.00', Icons.payments_rounded, Colors.green),
+        _statCard('Total Earnings', r'$12,450.00', Icons.payments_rounded, Colors.green),
         const SizedBox(width: 24),
         _statCard('AI Conversations', '4,231', Icons.chat_bubble_rounded, Colors.blue),
         const SizedBox(width: 24),
