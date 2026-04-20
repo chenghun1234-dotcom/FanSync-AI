@@ -1,5 +1,6 @@
 {
   "buildCommand": "bash build.sh",
   "outputDirectory": "dashboard/build/web",
-  "cleanUrls": true
+  "cleanUrls": false,
+  "trailingSlash": true
 }
