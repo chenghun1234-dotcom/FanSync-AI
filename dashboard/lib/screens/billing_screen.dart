@@ -88,7 +88,7 @@ class BillingScreen extends StatelessWidget {
           children: [
             Text('Payment Successful!', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            Text('Your agency wallet has been topped up with $50.00.', textAlign: TextAlign.center, style: GoogleFonts.inter()),
+            Text(r'Your agency wallet has been topped up with $50.00.', textAlign: TextAlign.center, style: GoogleFonts.inter()),
             const SizedBox(height: 16),
             Text('Ref: $paymentId', style: GoogleFonts.firaCode(fontSize: 11, color: Colors.grey)),
           ],
