@@ -152,7 +152,7 @@ class RevenueReportScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final names = ['Yui', 'Sana', 'Moka', 'Haruna', 'Kana'];
               final personas = ['Gyaru', 'Tsundere', 'Mature', 'Gyaru', 'Tsundere'];
-              final amounts = ['\$542.20', '\$310.50', '\$210.00', '\$120.40', '\$57.40'];
+              final amounts = [r'$542.20', r'$310.50', r'$210.00', r'$120.40', r'$57.40'];
               
               return Row(
                 children: [
@@ -177,6 +177,8 @@ class RevenueReportScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
   Widget _buildFanTierDistribution() {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -205,10 +207,10 @@ class RevenueReportScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _tierLegend('VVIP', '>$2000', const Color(0xFFFF00FF)),
-          _tierLegend('VIP', '>$1000', const Color(0xFF8A2BE2)),
-          _tierLegend('Gold', '>$500', const Color(0xFFFFD700)),
-          _tierLegend('Silver', '>$100', const Color(0xFFC0C0C0)),
+          _tierLegend('VVIP', r'>$2000', const Color(0xFFFF00FF)),
+          _tierLegend('VIP', r'>$1000', const Color(0xFF8A2BE2)),
+          _tierLegend('Gold', r'>$500', const Color(0xFFFFD700)),
+          _tierLegend('Silver', r'>$100', const Color(0xFFC0C0C0)),
         ],
       ),
     );

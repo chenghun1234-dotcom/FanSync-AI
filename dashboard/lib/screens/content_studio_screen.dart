@@ -101,7 +101,7 @@ Suggested PPV: \$15.00
                     : Stack(
                         alignment: Alignment.center,
                         children: [
-                          Image.network(_imageUrl!, fit: Colors.contain),
+                          Image.network(_imageUrl!, fit: BoxFit.contain),
                           _buildWatermarkOverlay(),
                         ],
                       ),
